@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Receipt - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <main>
+      <div class="receipt">
+        <h1>SHOP POS</h1>
+
+        <p>Sales Receipt</p>
+
+        <hr />
+
+        <!-- Receipt Information -->
+
+        <p>
+          <strong>Receipt No:</strong>
+          {{ sale_id }}
+        </p>
+
+        <p>
+          <strong>Date:</strong>
+          {{ sale_date }}
+        </p>
+
+        <hr />
+
+        <!-- Customer Information -->
+
+        <h3>Customer Information</h3>
+
+        <p>
+          <strong>Name:</strong>
+          {{ customer_name }}
+        </p>
+
+        {% if customer_phone %}
+
+        <p>
+          <strong>Phone:</strong>
+          {{ customer_phone }}
+        </p>
+
+        {% endif %}
+
+        <hr />
+
+        <!-- Product Information -->
+
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>{{ product_name }}</td>
+
+              <td>{{ quantity }}</td>
+
+              <td>KSh {{ selling_price }}</td>
+
+              <td>KSh {{ total }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <hr />
+
+        <!-- Total -->
+
+        <h2>Total: KSh {{ total }}</h2>
+
+        <p>Thank you for shopping with us!</p>
+
+        <!-- Buttons -->
+
+        <div class="receipt-buttons">
+          <button onclick="window.print()" class="button">Print Receipt</button>
+
+          <a href="/sale" class="button"> New Sale </a>
+
+          <a href="/dashboard" class="button"> Dashboard </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

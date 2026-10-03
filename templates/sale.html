@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Make Sale - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <nav>
+      <div class="nav-container">
+        <h2>SHOP POS</h2>
+
+        <div class="nav-links">
+          <a href="/dashboard">Dashboard</a>
+          <a href="/products">Products</a>
+          <a href="/sale">Make Sale</a>
+          <a href="/sales">Sales History</a>
+          <a href="/customers">Customers</a>
+          <a href="/low-stock">Low Stock</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      <div class="form-container">
+        <h1>Make Sale</h1>
+
+        <p>Select a customer, product and quantity.</p>
+
+        <!-- Sale Form -->
+        <form method="POST">
+          <!-- Customer -->
+          <div class="form-group">
+            <label for="customer_id"> Customer </label>
+
+            <select name="customer_id" id="customer_id">
+              <!-- Walk-in customer -->
+              <option value="">Walk-in Customer</option>
+
+              <!-- Registered customers -->
+              {% for customer in customers %}
+
+              <option value="{{ customer[0] }}">
+                {{ customer[1] }} {% if customer[2] %} - {{ customer[2] }} {%
+                endif %}
+              </option>
+
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Product -->
+          <div class="form-group">
+            <label for="product_id"> Product </label>
+
+            <select name="product_id" id="product_id" required>
+              <option value="">Select Product</option>
+
+              {% for product in products %}
+
+              <option value="{{ product[0] }}">
+                {{ product[1] }} - Stock: {{ product[2] }} - KSh {{ product[4]
+                }}
+              </option>
+
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Quantity -->
+          <div class="form-group">
+            <label for="quantity"> Quantity </label>
+
+            <input
+              type="number"
+              name="quantity"
+              id="quantity"
+              min="1"
+              placeholder="Enter quantity"
+              required
+            />
+          </div>
+
+          <!-- Submit -->
+          <div class="form-group">
+            <button type="submit" class="button">Make Sale</button>
+          </div>
+        </form>
+
+        <!-- Add Customer -->
+        <div class="form-footer">
+          <p>Customer not registered?</p>
+
+          <a href="/add-customer" class="button"> Add Customer </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

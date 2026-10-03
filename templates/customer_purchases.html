@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Customer Purchases - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+
+    <nav>
+      <div class="nav-container">
+        <h2>SHOP POS</h2>
+
+        <div class="nav-links">
+          <a href="/dashboard"> Dashboard </a>
+
+          <a href="/products"> Products </a>
+
+          <a href="/sale"> Make Sale </a>
+
+          <a href="/sales"> Sales History </a>
+
+          <a href="/customers"> Customers </a>
+
+          <a href="/low-stock"> Low Stock </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <div class="container">
+        <!-- Page Header -->
+
+        <div class="page-header">
+          <div>
+            <h1>Customer Purchase History</h1>
+
+            <p>View all purchases made by this customer.</p>
+          </div>
+
+          <a href="/customers" class="button"> Back to Customers </a>
+        </div>
+
+        <!-- Customer Information -->
+
+        <div class="customer-info">
+          <h2>{{ customer[1] }}</h2>
+
+          <p>
+            <strong> Phone: </strong>
+
+            {% if customer[2] %} {{ customer[2] }} {% else %} - {% endif %}
+          </p>
+
+          <p>
+            <strong> Email: </strong>
+
+            {% if customer[3] %} {{ customer[3] }} {% else %} - {% endif %}
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- Purchase History -->
+
+        <h2>Purchase History</h2>
+
+        {% if purchases %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+
+              <th>Quantity</th>
+
+              <th>Price</th>
+
+              <th>Total</th>
+
+              <th>Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for purchase in purchases %}
+
+            <tr>
+              <!-- Product -->
+
+              <td>{{ purchase[0] }}</td>
+
+              <!-- Quantity -->
+
+              <td>{{ purchase[1] }}</td>
+
+              <!-- Price -->
+
+              <td>KSh {{ purchase[2] }}</td>
+
+              <!-- Total -->
+
+              <td>KSh {{ purchase[3] }}</td>
+
+              <!-- Date -->
+
+              <td>{{ purchase[4] }}</td>
+            </tr>
+
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Total Spent -->
+
+        <div class="total-box">
+          <h2>Total Spent: KSh {{ total_spent }}</h2>
+        </div>
+
+        {% else %}
+
+        <!-- No Purchases -->
+
+        <div class="empty-state">
+          <h2>No Purchases</h2>
+
+          <p>This customer has not made any purchases yet.</p>
+
+          <a href="/sale" class="button"> Make a Sale </a>
+        </div>
+
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>

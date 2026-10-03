@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Dashboard - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <nav>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/products">Products</a>
+      <a href="/sale">Make Sale</a>
+      <a href="/sales">Sales</a>
+      <a href="/customers">Customers</a>
+      <a href="/low-stock">Low Stock</a>
+      <a href="/logout">Logout</a>
+    </nav>
+
+    <!-- Dashboard -->
+    <div class="container">
+      <h1>Shop POS Dashboard</h1>
+
+      <p>Welcome to your Shop POS system.</p>
+
+      <!-- Dashboard Cards -->
+      <div class="summary-cards">
+        <!-- Total Products -->
+        <div class="summary-card">
+          <h3>Total Products</h3>
+
+          <h2>{{ total_products }}</h2>
+
+          <a href="/products"> View Products </a>
+        </div>
+
+        <!-- Products In Stock -->
+        <div class="summary-card">
+          <h3>Products In Stock</h3>
+
+          <h2>{{ products_in_stock }}</h2>
+
+          <a href="/products"> View Stock </a>
+        </div>
+
+        <!-- Total Sales -->
+        <div class="summary-card">
+          <h3>Total Sales</h3>
+
+          <h2>{{ total_sales }}</h2>
+
+          <a href="/sales"> View Sales </a>
+        </div>
+
+        <!-- Total Revenue -->
+        <div class="summary-card">
+          <h3>Total Revenue</h3>
+
+          <h2>KSh {{ total_revenue }}</h2>
+
+          <a href="/sales"> View Sales </a>
+        </div>
+
+        <!-- Total Profit -->
+        <div class="summary-card">
+          <h3>Total Profit</h3>
+
+          <h2>KSh {{ total_profit }}</h2>
+
+          <a href="/sales"> View Profit </a>
+        </div>
+
+        <!-- Low Stock -->
+        <div class="summary-card">
+          <h3>Low Stock</h3>
+
+          <h2>{{ low_stock_count }}</h2>
+
+          <a href="/low-stock"> View Low Stock </a>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h2>Quick Actions</h2>
+
+        <a href="/add-product" class="button"> Add Product </a>
+
+        <a href="/sale" class="button"> Make Sale </a>
+
+        <a href="/add-customer" class="button"> Add Customer </a>
+
+        <a href="/products" class="button"> Manage Products </a>
+
+        <a href="/customers" class="button"> Manage Customers </a>
+
+        <a href="/sales" class="button"> View Sales </a>
+      </div>
+
+      <!-- Logout -->
+      <div class="logout-section">
+        <a href="/logout" class="button"> Logout </a>
+      </div>
+    </div>
+  </body>
+</html>

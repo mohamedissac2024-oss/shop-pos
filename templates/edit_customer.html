@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Edit Customer - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+
+    <nav>
+      <h2>Shop POS</h2>
+
+      <div>
+        <a href="/dashboard"> Dashboard </a>
+
+        <a href="/products"> Products </a>
+
+        <a href="/sale"> Make Sale </a>
+
+        <a href="/sales"> Sales History </a>
+
+        <a href="/low-stock"> Low Stock </a>
+
+        <a href="/customers"> Customers </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <h1>Edit Customer</h1>
+
+      <div class="form-container">
+        <form method="POST">
+          <!-- Name -->
+
+          <label for="name"> Customer Name </label>
+
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value="{{ customer[1] }}"
+            required
+          />
+
+          <!-- Phone -->
+
+          <label for="phone"> Phone Number </label>
+
+          <input
+            type="text"
+            id="phone"
+            name="phone"
+            value="{{ customer[2] }}"
+          />
+
+          <!-- Email -->
+
+          <label for="email"> Email </label>
+
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ customer[3] }}"
+          />
+
+          <!-- Update -->
+
+          <button type="submit" class="sell-button">Update Customer</button>
+        </form>
+      </div>
+
+      <br />
+
+      <a href="/customers"> ← Back to Customers </a>
+    </main>
+  </body>
+</html>

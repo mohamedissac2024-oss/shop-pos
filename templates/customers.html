@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Customers - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+
+    <nav>
+      <div class="nav-container">
+        <h2>SHOP POS</h2>
+
+        <div class="nav-links">
+          <a href="/dashboard"> Dashboard </a>
+
+          <a href="/products"> Products </a>
+
+          <a href="/sale"> Make Sale </a>
+
+          <a href="/sales"> Sales History </a>
+
+          <a href="/customers"> Customers </a>
+
+          <a href="/low-stock"> Low Stock </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <div class="container">
+        <!-- Page Header -->
+
+        <div class="page-header">
+          <div>
+            <h1>Customers</h1>
+
+            <p>Manage your shop customers.</p>
+          </div>
+
+          <a href="/add-customer" class="button"> Add Customer </a>
+        </div>
+
+        <!-- Customer List -->
+
+        {% if customers %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+
+              <th>Name</th>
+
+              <th>Phone</th>
+
+              <th>Email</th>
+
+              <th>Date Added</th>
+
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for customer in customers %}
+
+            <tr>
+              <!-- ID -->
+
+              <td>{{ customer[0] }}</td>
+
+              <!-- Name -->
+
+              <td>{{ customer[1] }}</td>
+
+              <!-- Phone -->
+
+              <td>
+                {% if customer[2] %} {{ customer[2] }} {% else %} - {% endif %}
+              </td>
+
+              <!-- Email -->
+
+              <td>
+                {% if customer[3] %} {{ customer[3] }} {% else %} - {% endif %}
+              </td>
+
+              <!-- Date Added -->
+
+              <td>{{ customer[4] }}</td>
+
+              <!-- Actions -->
+
+              <td>
+                <!-- Edit Customer -->
+
+                <a href="/edit-customer/{{ customer[0] }}" class="button">
+                  Edit
+                </a>
+
+                <!-- Purchase History -->
+
+                <a href="/customer/{{ customer[0] }}/purchases" class="button">
+                  Purchases
+                </a>
+
+                <!-- Delete Customer -->
+
+                <form
+                  method="POST"
+                  action="/delete-customer/{{ customer[0] }}"
+                  style="display: inline"
+                >
+                  <button
+                    type="submit"
+                    class="delete-button"
+                    onclick="
+                      return confirm(
+                        'Are you sure you want to delete this customer?',
+                      );
+                    "
+                  >
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {% else %}
+
+        <!-- No Customers -->
+
+        <div class="empty-state">
+          <h2>No Customers Found</h2>
+
+          <p>You have not added any customers yet.</p>
+
+          <a href="/add-customer" class="button"> Add Your First Customer </a>
+        </div>
+
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>

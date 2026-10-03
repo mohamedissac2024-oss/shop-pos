@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Sales History - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation -->
+    <nav>
+      <div class="nav-container">
+        <h2>SHOP POS</h2>
+
+        <div class="nav-links">
+          <a href="/dashboard">Dashboard</a>
+          <a href="/products">Products</a>
+          <a href="/sale">Make Sale</a>
+          <a href="/sales">Sales History</a>
+          <a href="/customers">Customers</a>
+          <a href="/low-stock">Low Stock</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      <div class="container">
+        <h1>Sales History</h1>
+
+        <p>View and filter all sales made in the shop.</p>
+
+        <!-- ================================= -->
+        <!-- SALES FILTER -->
+        <!-- ================================= -->
+
+        <div class="sales-filter">
+          <h3>Filter Sales</h3>
+
+          <a href="/sales?filter=all" class="button"> All Sales </a>
+
+          <a href="/sales?filter=today" class="button"> Today </a>
+
+          <a href="/sales?filter=week" class="button"> Last 7 Days </a>
+
+          <a href="/sales?filter=month" class="button"> This Month </a>
+        </div>
+
+        <!-- ================================= -->
+        <!-- SALES SUMMARY -->
+        <!-- ================================= -->
+
+        <div class="summary-cards">
+          <!-- Total Sales -->
+          <div class="summary-card">
+            <h3>Total Sales</h3>
+
+            <h2>{{ total_sales }}</h2>
+          </div>
+
+          <!-- Total Revenue -->
+          <div class="summary-card">
+            <h3>Total Revenue</h3>
+
+            <h2>KSh {{ total_revenue }}</h2>
+          </div>
+
+          <!-- Total Profit -->
+          <div class="summary-card">
+            <h3>Total Profit</h3>
+
+            <h2>KSh {{ total_profit }}</h2>
+          </div>
+        </div>
+
+        <!-- ================================= -->
+        <!-- SALES TABLE -->
+        <!-- ================================= -->
+
+        {% if sales %}
+
+        <table>
+          <thead>
+            <tr>
+              <th>Sale ID</th>
+
+              <th>Customer</th>
+
+              <th>Phone</th>
+
+              <th>Product</th>
+
+              <th>Quantity</th>
+
+              <th>Price</th>
+
+              <th>Total</th>
+
+              <th>Profit</th>
+
+              <th>Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for sale in sales %}
+
+            <tr>
+              <td>{{ sale[0] }}</td>
+
+              <td>
+                {% if sale[2] %} {{ sale[2] }} {% else %} Walk-in Customer {%
+                endif %}
+              </td>
+
+              <td>{% if sale[3] %} {{ sale[3] }} {% else %} - {% endif %}</td>
+
+              <td>{{ sale[1] }}</td>
+
+              <td>{{ sale[4] }}</td>
+
+              <td>KSh {{ sale[5] }}</td>
+
+              <td>KSh {{ sale[6] }}</td>
+
+              <td>KSh {{ sale[7] }}</td>
+
+              <td>{{ sale[8] }}</td>
+            </tr>
+
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {% else %}
+
+        <div class="empty-state">
+          <h2>No Sales Found</h2>
+
+          <p>There are no sales for the selected period.</p>
+
+          <a href="/sale" class="button"> Make a Sale </a>
+        </div>
+
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,324 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+nav {
+    background: #222;
+    color: white;
+    padding: 15px 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav h2 {
+    margin: 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    padding: 30px;
+}
+
+h1 {
+    margin-bottom: 30px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+.card p {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* Page Header */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+
+/* Buttons */
+
+.button {
+    background: #222;
+    color: white;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.button:hover {
+    opacity: 0.8;
+}
+
+
+/* Table */
+
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #f4f6f8;
+}
+
+
+/* Edit Button */
+
+.edit-button {
+    color: #222;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+.edit-button:hover {
+    text-decoration: underline;
+}
+
+
+/* Delete Button */
+
+.delete-button {
+    background: #d9534f;
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    opacity: 0.8;
+}
+
+/* Sale Form */
+
+.form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 600px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-container select,
+.form-container input {
+    padding: 12px;
+    margin-bottom: 20px;
+
+    border: 1px solid #ccc;
+    border-radius: 5px;
+
+    font-size: 16px;
+}
+
+.sell-button {
+    background: #222;
+    color: white;
+
+    border: none;
+    padding: 12px;
+
+    border-radius: 5px;
+
+    font-size: 16px;
+
+    cursor: pointer;
+}
+
+.sell-button:hover {
+    opacity: 0.8;
+}
+
+/* Search */
+
+.search-container {
+    background: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-container form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-container input {
+    flex: 1;
+
+    padding: 10px;
+
+    border: 1px solid #ccc;
+    border-radius: 5px;
+
+    font-size: 16px;
+}
+
+
+/* Stock Status */
+
+.in-stock {
+    color: green;
+    font-weight: bold;
+}
+
+.low-stock {
+    color: orange;
+    font-weight: bold;
+}
+
+.out-of-stock {
+    color: red;
+    font-weight: bold;
+}
+
+/* Receipt */
+
+.receipt {
+    background: white;
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    text-align: center;
+}
+
+.receipt table {
+    margin-top: 20px;
+}
+
+.receipt-buttons {
+    margin-top: 30px;
+
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+
+/* Print Receipt */
+
+@media print {
+
+    nav,
+    .receipt-buttons {
+        display: none;
+    }
+
+    body {
+        background: white;
+    }
+
+    .receipt {
+        box-shadow: none;
+        margin: 0;
+        max-width: 100%;
+    }
+
+}
+
+
+/* Sales Summary Cards */
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.summary-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h3 {
+    margin-bottom: 10px;
+}
+
+.summary-card h2 {
+    margin: 0;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+}

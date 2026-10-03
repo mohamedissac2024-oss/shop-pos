@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Low Stock - Shop POS</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <!-- Navigation Bar -->
+
+    <nav>
+      <h2>Shop POS</h2>
+
+      <div>
+        <a href="/dashboard"> Dashboard </a>
+
+        <a href="/products"> Products </a>
+
+        <a href="/sale"> Make Sale </a>
+
+        <a href="/sales"> Sales History </a>
+
+        <a href="/low-stock"> Low Stock </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <div class="page-header">
+        <h1>Low Stock Products</h1>
+
+        <a class="button" href="/products"> View All Products </a>
+      </div>
+
+      {% if products %}
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Product Name</th>
+              <th>Quantity</th>
+              <th>Buying Price</th>
+              <th>Selling Price</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for product in products %}
+
+            <tr>
+              <td>{{ product[0] }}</td>
+
+              <td>{{ product[1] }}</td>
+
+              <td>{{ product[2] }}</td>
+
+              <td>KSh {{ product[3] }}</td>
+
+              <td>KSh {{ product[4] }}</td>
+
+              <td>
+                <a class="edit-button" href="/edit-product/{{ product[0] }}">
+                  Edit
+                </a>
+              </td>
+            </tr>
+
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+
+      <div class="form-container">
+        <h2>All Stock Levels Are Good</h2>
+
+        <p>There are currently no products with 5 or fewer items.</p>
+      </div>
+
+      {% endif %}
+    </main>
+  </body>
+</html>
