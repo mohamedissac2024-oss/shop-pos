@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create Customer Invitation</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="setup-container">
+      <h1>Create Customer Invitation</h1>
+
+      <p class="setup-description">
+        Select the shop that this customer will belong to.
+      </p>
+
+      <form method="POST">
+        <div class="form-group">
+          <label for="shop_id"> Select Shop </label>
+
+          <select id="shop_id" name="shop_id" required>
+            <option value="">-- Select a Shop --</option>
+
+            {% for shop in shops %}
+
+            <option value="{{ shop[0] }}">{{ shop[1] }}</option>
+
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit">Create Invitation</button>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,21 +1,49 @@
+/* =========================================
+   GENERAL
+   ========================================= */
+
 * {
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+
     font-family: Arial, sans-serif;
+
     background: #f4f6f8;
+    color: #222;
 }
+
+a {
+    color: inherit;
+}
+
+
+/* =========================================
+   NAVIGATION
+   ========================================= */
 
 nav {
     background: #222;
     color: white;
+
     padding: 15px 30px;
 
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 nav h2 {
@@ -25,6 +53,7 @@ nav h2 {
 nav a {
     color: white;
     text-decoration: none;
+
     margin-left: 20px;
 }
 
@@ -32,24 +61,45 @@ nav a:hover {
     text-decoration: underline;
 }
 
+
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
+
 main {
     padding: 30px;
 }
 
 h1 {
+    margin-top: 0;
     margin-bottom: 30px;
 }
 
+h2,
+h3 {
+    margin-top: 0;
+}
+
+
+/* =========================================
+   DASHBOARD CARDS
+   ========================================= */
+
 .cards {
     display: grid;
+
     grid-template-columns: repeat(4, 1fr);
+
     gap: 20px;
 }
 
 .card {
     background: white;
+
     padding: 25px;
+
     border-radius: 10px;
+
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -62,24 +112,79 @@ h1 {
     font-weight: bold;
 }
 
-/* Page Header */
 
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.summary-cards {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 20px;
+
+    margin: 30px 0;
+}
+
+.summary-card {
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h3 {
+    margin-bottom: 10px;
+}
+
+.summary-card h2 {
+    margin: 0 0 15px 0;
 }
 
 
-/* Buttons */
+/* =========================================
+   PAGE HEADER
+   ========================================= */
+
+.page-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+}
+
+
+/* =========================================
+   BUTTONS
+   ========================================= */
 
 .button {
+    display: inline-block;
+
     background: #222;
     color: white;
+
     padding: 10px 18px;
+
     text-decoration: none;
+
     border-radius: 5px;
+
+    border: none;
+
+    cursor: pointer;
 }
 
 .button:hover {
@@ -87,26 +192,36 @@ h1 {
 }
 
 
-/* Table */
+/* =========================================
+   TABLE
+   ========================================= */
 
 .table-container {
     background: white;
+
     padding: 20px;
+
     border-radius: 10px;
+
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    width: 100%;
 
     overflow-x: auto;
 }
 
 table {
     width: 100%;
+
     border-collapse: collapse;
 }
 
 th,
 td {
     padding: 14px;
+
     text-align: left;
+
     border-bottom: 1px solid #ddd;
 }
 
@@ -115,11 +230,15 @@ th {
 }
 
 
-/* Edit Button */
+/* =========================================
+   EDIT BUTTON
+   ========================================= */
 
 .edit-button {
     color: #222;
+
     text-decoration: none;
+
     margin-right: 10px;
 }
 
@@ -128,14 +247,21 @@ th {
 }
 
 
-/* Delete Button */
+/* =========================================
+   DELETE BUTTON
+   ========================================= */
 
 .delete-button {
     background: #d9534f;
+
     color: white;
+
     border: none;
+
     padding: 7px 12px;
+
     border-radius: 4px;
+
     cursor: pointer;
 }
 
@@ -143,33 +269,47 @@ th {
     opacity: 0.8;
 }
 
-/* Sale Form */
+
+/* =========================================
+   SALE FORM
+   ========================================= */
 
 .form-container {
     background: white;
+
     padding: 30px;
+
     border-radius: 10px;
+
     max-width: 600px;
+
+    width: 100%;
 
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-container form {
     display: flex;
+
     flex-direction: column;
 }
 
 .form-container label {
     margin-bottom: 8px;
+
     font-weight: bold;
 }
 
 .form-container select,
 .form-container input {
+    width: 100%;
+
     padding: 12px;
+
     margin-bottom: 20px;
 
     border: 1px solid #ccc;
+
     border-radius: 5px;
 
     font-size: 16px;
@@ -177,9 +317,11 @@ th {
 
 .sell-button {
     background: #222;
+
     color: white;
 
     border: none;
+
     padding: 12px;
 
     border-radius: 5px;
@@ -187,63 +329,92 @@ th {
     font-size: 16px;
 
     cursor: pointer;
+
+    width: 100%;
 }
 
 .sell-button:hover {
     opacity: 0.8;
 }
 
-/* Search */
+
+/* =========================================
+   SEARCH
+   ========================================= */
 
 .search-container {
     background: white;
+
     padding: 20px;
+
     margin-bottom: 25px;
+
     border-radius: 10px;
 
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    width: 100%;
 }
 
 .search-container form {
     display: flex;
+
     gap: 10px;
+
+    width: 100%;
 }
 
 .search-container input {
     flex: 1;
 
+    min-width: 0;
+
     padding: 10px;
 
     border: 1px solid #ccc;
+
     border-radius: 5px;
 
     font-size: 16px;
 }
 
 
-/* Stock Status */
+/* =========================================
+   STOCK STATUS
+   ========================================= */
 
 .in-stock {
     color: green;
+
     font-weight: bold;
 }
 
 .low-stock {
     color: orange;
+
     font-weight: bold;
 }
 
 .out-of-stock {
     color: red;
+
     font-weight: bold;
 }
 
-/* Receipt */
+
+/* =========================================
+   RECEIPT
+   ========================================= */
 
 .receipt {
     background: white;
+
     max-width: 700px;
+
+    width: 100%;
+
     margin: 40px auto;
+
     padding: 30px;
 
     border-radius: 10px;
@@ -261,12 +432,469 @@ th {
     margin-top: 30px;
 
     display: flex;
+
     justify-content: center;
+
     gap: 10px;
+
+    flex-wrap: wrap;
 }
 
 
-/* Print Receipt */
+/* =========================================
+   ACCOUNT SETUP
+   ========================================= */
+
+.setup-container {
+    width: 90%;
+
+    max-width: 450px;
+
+    margin: 80px auto;
+
+    padding: 35px;
+
+    background: white;
+
+    border-radius: 10px;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.setup-container h1 {
+    text-align: center;
+
+    margin-bottom: 10px;
+}
+
+.setup-description {
+    text-align: center;
+
+    color: #666;
+
+    margin-bottom: 30px;
+
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 16px;
+}
+
+.setup-container button {
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    background: #222;
+
+    color: white;
+}
+
+.setup-container button:hover {
+    opacity: 0.8;
+}
+
+.login-link {
+    text-align: center;
+
+    margin-top: 20px;
+}
+
+.login-link a {
+    text-decoration: none;
+}
+
+
+/* =========================================
+   QUICK ACTIONS
+   ========================================= */
+
+.quick-actions {
+    margin-top: 30px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+.quick-actions h2 {
+    width: 100%;
+}
+
+
+/* =========================================
+   LOGOUT
+   ========================================= */
+
+.logout-section {
+    margin-top: 30px;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1024px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    main {
+        padding: 25px;
+    }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    /* Navigation */
+
+    nav {
+        padding: 15px;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 5px;
+    }
+
+    nav a {
+        margin-left: 0;
+
+        margin-right: 15px;
+
+        margin-bottom: 8px;
+
+        display: inline-block;
+    }
+
+
+    /* Main */
+
+    main {
+        padding: 20px 15px;
+    }
+
+
+    /* Headings */
+
+    h1 {
+        font-size: 28px;
+
+        margin-bottom: 20px;
+    }
+
+
+    /* Dashboard cards */
+
+    .cards {
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+    }
+
+
+    /* Summary cards */
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+
+        margin: 20px 0;
+    }
+
+
+    /* Page header */
+
+    .page-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+    }
+
+
+    /* Search */
+
+    .search-container form {
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+    .search-container input {
+        width: 100%;
+    }
+
+
+    /* Forms */
+
+    .form-container {
+        width: 100%;
+
+        padding: 20px;
+    }
+
+
+    /* Tables */
+
+    .table-container {
+        width: 100%;
+
+        overflow-x: auto;
+
+        padding: 15px;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+
+    /* Buttons */
+
+    .button {
+        padding: 12px 16px;
+    }
+
+
+    /* Quick actions */
+
+    .quick-actions {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .quick-actions .button {
+        width: 100%;
+
+        text-align: center;
+    }
+
+
+    /* Receipt */
+
+    .receipt {
+        width: 100%;
+
+        margin: 20px auto;
+
+        padding: 20px;
+    }
+
+    .receipt-buttons {
+        flex-direction: column;
+    }
+
+    .receipt-buttons .button {
+        width: 100%;
+
+        text-align: center;
+    }
+
+
+    /* Setup */
+
+    .setup-container {
+        width: calc(100% - 30px);
+
+        margin: 30px auto;
+
+        padding: 25px 20px;
+    }
+}
+
+
+/* =========================================
+   SMALL PHONES
+   ========================================= */
+
+@media (max-width: 480px) {
+
+    body {
+        font-size: 14px;
+    }
+
+
+    /* Navigation */
+
+    nav {
+        padding: 12px;
+    }
+
+    nav a {
+        display: block;
+
+        margin: 8px 0;
+    }
+
+
+    /* Main */
+
+    main {
+        padding: 15px 10px;
+    }
+
+
+    /* Headings */
+
+    h1 {
+        font-size: 24px;
+
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    h3 {
+        font-size: 17px;
+    }
+
+
+    /* Cards */
+
+    .card {
+        padding: 20px;
+    }
+
+    .card p {
+        font-size: 25px;
+    }
+
+
+    /* Summary cards */
+
+    .summary-card {
+        padding: 20px 15px;
+    }
+
+    .summary-card h2 {
+        font-size: 24px;
+    }
+
+
+    /* Buttons */
+
+    .button {
+        width: 100%;
+
+        text-align: center;
+
+        margin-bottom: 10px;
+    }
+
+
+    /* Forms */
+
+    .form-container {
+        padding: 15px;
+    }
+
+    .form-container select,
+    .form-container input {
+        width: 100%;
+
+        font-size: 16px;
+    }
+
+
+    /* Search */
+
+    .search-container {
+        padding: 15px;
+    }
+
+
+    /* Tables */
+
+    .table-container {
+        padding: 10px;
+    }
+
+
+    /* Receipt */
+
+    .receipt {
+        padding: 15px;
+
+        margin: 10px auto;
+    }
+
+
+    /* Account setup */
+
+    .setup-container {
+        width: calc(100% - 20px);
+
+        padding: 20px 15px;
+
+        margin: 20px auto;
+    }
+
+    .setup-container h1 {
+        font-size: 22px;
+    }
+
+
+    /* Delete button */
+
+    .delete-button {
+        padding: 9px 12px;
+    }
+}
+
+
+/* =========================================
+   PRINT RECEIPT
+   ========================================= */
 
 @media print {
 
@@ -281,44 +909,9 @@ th {
 
     .receipt {
         box-shadow: none;
+
         margin: 0;
+
         max-width: 100%;
     }
-
-}
-
-
-/* Sales Summary Cards */
-
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin: 30px 0;
-}
-
-.summary-card {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.summary-card h3 {
-    margin-bottom: 10px;
-}
-
-.summary-card h2 {
-    margin: 0;
-}
-
-/* Responsive */
-
-@media (max-width: 768px) {
-
-    .summary-cards {
-        grid-template-columns: 1fr;
-    }
-
 }

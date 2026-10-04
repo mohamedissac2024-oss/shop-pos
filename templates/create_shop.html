@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create New Shop</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="setup-container">
+      <h1>Create New Shop</h1>
+
+      <p class="setup-description">Create a new shop in the Shop POS system.</p>
+
+      <form method="POST">
+        <div class="form-group">
+          <label for="name"> Shop Name </label>
+
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter shop name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="phone"> Phone Number </label>
+
+          <input
+            type="text"
+            id="phone"
+            name="phone"
+            placeholder="Enter shop phone number"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email"> Email Address </label>
+
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter shop email"
+          />
+        </div>
+
+        <button type="submit">Create Shop</button>
+      </form>
+
+      <p class="login-link">
+        <a href="{{ url_for('dashboard') }}"> Back to Dashboard </a>
+      </p>
+    </div>
+  </body>
+</html>

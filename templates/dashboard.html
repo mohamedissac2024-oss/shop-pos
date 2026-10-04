@@ -16,11 +16,26 @@
     <!-- Navigation -->
     <nav>
       <a href="/dashboard">Dashboard</a>
+
       <a href="/products">Products</a>
+
       <a href="/sale">Make Sale</a>
+
       <a href="/sales">Sales</a>
+
       <a href="/customers">Customers</a>
+
       <a href="/low-stock">Low Stock</a>
+
+      <!-- Admin Only Links -->
+      {% if session["role"] == "admin" %}
+
+      <a href="/create-shop">Create Shop</a>
+
+      <a href="/create-invite">Create Invitation</a>
+
+      {% endif %}
+
       <a href="/logout">Logout</a>
     </nav>
 
@@ -102,6 +117,15 @@
         <a href="/customers" class="button"> Manage Customers </a>
 
         <a href="/sales" class="button"> View Sales </a>
+
+        <!-- Admin Quick Actions -->
+        {% if session["role"] == "admin" %}
+
+        <a href="/create-shop" class="button"> Create Shop </a>
+
+        <a href="/create-invite" class="button"> Create Invitation </a>
+
+        {% endif %}
       </div>
 
       <!-- Logout -->
