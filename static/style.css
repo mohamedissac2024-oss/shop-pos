@@ -915,3 +915,481 @@ th {
         max-width: 100%;
     }
 }
+
+
+/* =========================================
+   NEW DASHBOARD DESIGN
+   ========================================= */
+
+/* Main container */
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 35px 25px;
+}
+
+
+/* =========================================
+   NAVBAR
+   ========================================= */
+
+.navbar {
+    background: #222;
+    color: white;
+
+    min-height: 65px;
+
+    padding: 0 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+/* Shop POS logo */
+
+.nav-brand a {
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+/* Navigation links */
+
+.nav-links {
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    flex-wrap: wrap;
+}
+
+.nav-links a {
+    color: white;
+
+    text-decoration: none;
+
+    padding: 10px 12px;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    background: #444;
+
+    text-decoration: none;
+}
+
+
+/* Logout */
+
+.nav-links .logout-link {
+    background: #c0392b;
+}
+
+.nav-links .logout-link:hover {
+    background: #a93226;
+}
+
+
+/* =========================================
+   DASHBOARD HEADER
+   ========================================= */
+
+.dashboard-header {
+    margin-bottom: 25px;
+}
+
+.dashboard-header h1 {
+    margin: 0 0 8px 0;
+
+    font-size: 32px;
+}
+
+.dashboard-header p {
+    margin: 0;
+
+    color: #666;
+
+    font-size: 16px;
+}
+
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.summary-cards {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 20px;
+
+    margin: 25px 0 35px;
+}
+
+
+.summary-card {
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 12px;
+
+    text-align: left;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+
+    border: 1px solid #eee;
+
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+
+.summary-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+
+.card-icon {
+    font-size: 28px;
+
+    margin-bottom: 12px;
+}
+
+
+.summary-card h3 {
+    font-size: 15px;
+
+    color: #666;
+
+    margin: 0 0 10px;
+}
+
+
+.summary-card h2 {
+    font-size: 28px;
+
+    margin: 0 0 15px;
+
+    color: #222;
+}
+
+
+.summary-card a {
+    color: #222;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: bold;
+}
+
+
+.summary-card a:hover {
+    text-decoration: underline;
+}
+
+
+/* Low stock */
+
+.low-stock-card {
+    border-left: 4px solid #e67e22;
+}
+
+
+/* =========================================
+   QUICK ACTIONS
+   ========================================= */
+
+.quick-actions {
+    margin-top: 10px;
+}
+
+
+.quick-actions h2 {
+    margin-bottom: 18px;
+
+    font-size: 22px;
+}
+
+
+.action-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 15px;
+}
+
+
+.action-button {
+    background: white;
+
+    color: #222;
+
+    text-decoration: none;
+
+    padding: 18px;
+
+    border-radius: 10px;
+
+    border: 1px solid #ddd;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    font-weight: bold;
+
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.05);
+
+    transition: 0.2s;
+}
+
+
+.action-button span {
+    font-size: 20px;
+}
+
+
+.action-button:hover {
+    background: #222;
+
+    color: white;
+
+    border-color: #222;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1000px) {
+
+    .navbar {
+        padding: 15px 20px;
+
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .nav-brand {
+        text-align: center;
+    }
+
+
+    .nav-links {
+        justify-content: center;
+    }
+
+
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+
+    .action-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+    body {
+        font-size: 15px;
+    }
+
+
+    /* Navbar */
+
+    .navbar {
+        padding: 15px;
+
+        gap: 12px;
+    }
+
+
+    .nav-brand {
+        text-align: left;
+    }
+
+
+    .nav-brand a {
+        font-size: 20px;
+    }
+
+
+    .nav-links {
+        display: grid;
+
+        grid-template-columns: repeat(2, 1fr);
+
+        width: 100%;
+
+        gap: 6px;
+    }
+
+
+    .nav-links a {
+        background: #333;
+
+        text-align: center;
+
+        padding: 11px 6px;
+
+        font-size: 13px;
+
+        border-radius: 6px;
+    }
+
+
+    .nav-links .logout-link {
+        background: #c0392b;
+    }
+
+
+    /* Main container */
+
+    .container {
+        padding: 25px 15px;
+    }
+
+
+    /* Header */
+
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+
+
+    .dashboard-header h1 {
+        font-size: 25px;
+
+        line-height: 1.2;
+    }
+
+
+    .dashboard-header p {
+        font-size: 14px;
+    }
+
+
+    /* Summary cards */
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+        margin: 20px 0 30px;
+    }
+
+
+    .summary-card {
+        padding: 20px;
+
+        border-radius: 10px;
+    }
+
+
+    .card-icon {
+        font-size: 24px;
+
+        margin-bottom: 8px;
+    }
+
+
+    .summary-card h3 {
+        font-size: 14px;
+    }
+
+
+    .summary-card h2 {
+        font-size: 25px;
+    }
+
+
+    /* Quick actions */
+
+    .quick-actions h2 {
+        font-size: 20px;
+    }
+
+
+    .action-grid {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+
+    .action-button {
+        width: 100%;
+
+        padding: 16px;
+
+        min-height: 52px;
+    }
+
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+    .nav-links {
+        grid-template-columns: 1fr;
+    }
+
+
+    .nav-links a {
+        width: 100%;
+    }
+
+
+    .container {
+        padding: 20px 12px;
+    }
+
+
+    .dashboard-header h1 {
+        font-size: 23px;
+    }
+
+}

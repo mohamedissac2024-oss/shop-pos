@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Dashboard - Shop POS</title>
@@ -14,124 +15,166 @@
 
   <body>
     <!-- Navigation -->
-    <nav>
-      <a href="/dashboard">Dashboard</a>
+    <nav class="navbar">
+      <div class="nav-brand">
+        <a href="/dashboard"> Shop POS </a>
+      </div>
 
-      <a href="/products">Products</a>
+      <div class="nav-links">
+        <a href="/dashboard"> Dashboard </a>
 
-      <a href="/sale">Make Sale</a>
+        <a href="/products"> Products </a>
 
-      <a href="/sales">Sales</a>
+        <a href="/sale"> Make Sale </a>
 
-      <a href="/customers">Customers</a>
+        <a href="/sales"> Sales </a>
 
-      <a href="/low-stock">Low Stock</a>
+        <a href="/customers"> Customers </a>
 
-      <!-- Admin Only Links -->
-      {% if session["role"] == "admin" %}
+        <a href="/low-stock"> Low Stock </a>
 
-      <a href="/create-shop">Create Shop</a>
+        {% if session["role"] == "admin" %}
 
-      <a href="/create-invite">Create Invitation</a>
+        <a href="/create-shop"> Create Shop </a>
 
-      {% endif %}
+        <a href="/create-invite"> Create Invitation </a>
 
-      <a href="/logout">Logout</a>
+        {% endif %}
+
+        <a href="/logout" class="logout-link"> Logout </a>
+      </div>
     </nav>
 
-    <!-- Dashboard -->
-    <div class="container">
-      <h1>Shop POS Dashboard</h1>
+    <!-- Main Dashboard -->
+    <main class="container">
+      <!-- Header -->
+      <section class="dashboard-header">
+        <div>
+          <h1>Shop POS Dashboard</h1>
 
-      <p>Welcome to your Shop POS system.</p>
+          <p>Welcome to your Shop POS system.</p>
+        </div>
+      </section>
 
-      <!-- Dashboard Cards -->
-      <div class="summary-cards">
+      <!-- Summary Cards -->
+      <section class="summary-cards">
         <!-- Total Products -->
         <div class="summary-card">
+          <div class="card-icon">📦</div>
+
           <h3>Total Products</h3>
 
           <h2>{{ total_products }}</h2>
 
-          <a href="/products"> View Products </a>
+          <a href="/products"> View Products → </a>
         </div>
 
         <!-- Products In Stock -->
         <div class="summary-card">
+          <div class="card-icon">📊</div>
+
           <h3>Products In Stock</h3>
 
           <h2>{{ products_in_stock }}</h2>
 
-          <a href="/products"> View Stock </a>
+          <a href="/products"> View Stock → </a>
         </div>
 
         <!-- Total Sales -->
         <div class="summary-card">
+          <div class="card-icon">🛒</div>
+
           <h3>Total Sales</h3>
 
           <h2>{{ total_sales }}</h2>
 
-          <a href="/sales"> View Sales </a>
+          <a href="/sales"> View Sales → </a>
         </div>
 
-        <!-- Total Revenue -->
+        <!-- Revenue -->
         <div class="summary-card">
+          <div class="card-icon">💰</div>
+
           <h3>Total Revenue</h3>
 
           <h2>KSh {{ total_revenue }}</h2>
 
-          <a href="/sales"> View Sales </a>
+          <a href="/sales"> View Sales → </a>
         </div>
 
-        <!-- Total Profit -->
+        <!-- Profit -->
         <div class="summary-card">
+          <div class="card-icon">📈</div>
+
           <h3>Total Profit</h3>
 
           <h2>KSh {{ total_profit }}</h2>
 
-          <a href="/sales"> View Profit </a>
+          <a href="/sales"> View Profit → </a>
         </div>
 
         <!-- Low Stock -->
-        <div class="summary-card">
+        <div class="summary-card low-stock-card">
+          <div class="card-icon">⚠️</div>
+
           <h3>Low Stock</h3>
 
           <h2>{{ low_stock_count }}</h2>
 
-          <a href="/low-stock"> View Low Stock </a>
+          <a href="/low-stock"> Check Stock → </a>
         </div>
-      </div>
+      </section>
 
       <!-- Quick Actions -->
-      <div class="quick-actions">
+      <section class="quick-actions">
         <h2>Quick Actions</h2>
 
-        <a href="/add-product" class="button"> Add Product </a>
+        <div class="action-grid">
+          <a href="/add-product" class="action-button">
+            <span>➕</span>
+            Add Product
+          </a>
 
-        <a href="/sale" class="button"> Make Sale </a>
+          <a href="/sale" class="action-button">
+            <span>🛒</span>
+            Make Sale
+          </a>
 
-        <a href="/add-customer" class="button"> Add Customer </a>
+          <a href="/add-customer" class="action-button">
+            <span>👤</span>
+            Add Customer
+          </a>
 
-        <a href="/products" class="button"> Manage Products </a>
+          <a href="/products" class="action-button">
+            <span>📦</span>
+            Manage Products
+          </a>
 
-        <a href="/customers" class="button"> Manage Customers </a>
+          <a href="/customers" class="action-button">
+            <span>👥</span>
+            Manage Customers
+          </a>
 
-        <a href="/sales" class="button"> View Sales </a>
+          <a href="/sales" class="action-button">
+            <span>📋</span>
+            View Sales
+          </a>
 
-        <!-- Admin Quick Actions -->
-        {% if session["role"] == "admin" %}
+          {% if session["role"] == "admin" %}
 
-        <a href="/create-shop" class="button"> Create Shop </a>
+          <a href="/create-shop" class="action-button">
+            <span>🏪</span>
+            Create Shop
+          </a>
 
-        <a href="/create-invite" class="button"> Create Invitation </a>
+          <a href="/create-invite" class="action-button">
+            <span>🔗</span>
+            Create Invitation
+          </a>
 
-        {% endif %}
-      </div>
-
-      <!-- Logout -->
-      <div class="logout-section">
-        <a href="/logout" class="button"> Logout </a>
-      </div>
-    </div>
+          {% endif %}
+        </div>
+      </section>
+    </main>
   </body>
 </html>
