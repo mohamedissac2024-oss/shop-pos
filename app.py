@@ -1,6 +1,7 @@
 import os
 import secrets
 import hashlib
+
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -18,14 +19,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_connection
 
 
+# =========================================
+# FLASK APP
+# =========================================
+
 app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY")
 
 
-# =========================================================
+# =========================================
 # LOGIN REQUIRED
-# =========================================================
+# =========================================
 
 def login_required(f):
 
@@ -40,9 +45,9 @@ def login_required(f):
     return decorated_function
 
 
-# =========================================================
+# =========================================
 # ADMIN REQUIRED
-# =========================================================
+# =========================================
 
 def admin_required(f):
 
@@ -60,9 +65,22 @@ def admin_required(f):
     return decorated_function
 
 
-# =========================================================
+# =========================================
+# HOME
+# =========================================
+
+@app.route("/")
+def home():
+
+    if "user_id" in session:
+        return redirect(url_for("dashboard"))
+
+    return redirect(url_for("login"))
+
+
+# =========================================
 # LOGIN
-# =========================================================
+# =========================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -77,7 +95,12 @@ def login():
 
         cursor.execute(
             """
-            SELECT id, username, password_hash, shop_id, role
+            SELECT
+                id,
+                username,
+                password_hash,
+                shop_id,
+                role
             FROM users
             WHERE username = %s
             """,
@@ -89,7 +112,10 @@ def login():
         cursor.close()
         connection.close()
 
-        if user and check_password_hash(user[2], password):
+        if user and check_password_hash(
+            user[2],
+            password
+        ):
 
             session["user_id"] = user[0]
             session["username"] = user[1]
@@ -103,9 +129,9 @@ def login():
     return render_template("login.html")
 
 
-# =========================================================
+# =========================================
 # LOGOUT
-# =========================================================
+# =========================================
 
 @app.route("/logout")
 def logout():
@@ -115,9 +141,9 @@ def logout():
     return redirect(url_for("login"))
 
 
-# =========================================================
+# =========================================
 # DASHBOARD
-# =========================================================
+# =========================================
 
 @app.route("/dashboard")
 @login_required
@@ -187,6 +213,7 @@ def dashboard():
         )
         FROM sales
         WHERE shop_id = %s
+        AND buying_price IS NOT NULL
         """,
         (shop_id,)
     )
@@ -220,9 +247,9 @@ def dashboard():
     )
 
 
-# =========================================================
+# =========================================
 # PRODUCTS
-# =========================================================
+# =========================================
 
 @app.route("/products")
 @login_required
@@ -230,18 +257,50 @@ def products():
 
     shop_id = session["shop_id"]
 
+    search = request.args.get("search", "")
+
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, name, quantity, buying_price, selling_price
-        FROM products
-        WHERE shop_id = %s
-        ORDER BY id DESC
-        """,
-        (shop_id,)
-    )
+    if search:
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                name,
+                quantity,
+                buying_price,
+                selling_price
+            FROM products
+            WHERE shop_id = %s
+            AND (
+                name ILIKE %s
+            )
+            ORDER BY id DESC
+            """,
+            (
+                shop_id,
+                f"%{search}%"
+            )
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                name,
+                quantity,
+                buying_price,
+                selling_price
+            FROM products
+            WHERE shop_id = %s
+            ORDER BY id DESC
+            """,
+            (shop_id,)
+        )
 
     products = cursor.fetchall()
 
@@ -250,13 +309,14 @@ def products():
 
     return render_template(
         "products.html",
-        products=products
+        products=products,
+        search=search
     )
 
 
-# =========================================================
+# =========================================
 # ADD PRODUCT
-# =========================================================
+# =========================================
 
 @app.route("/add-product", methods=["GET", "POST"])
 @login_required
@@ -305,9 +365,9 @@ def add_product():
     return render_template("add_product.html")
 
 
-# =========================================================
+# =========================================
 # EDIT PRODUCT
-# =========================================================
+# =========================================
 
 @app.route("/edit-product/<int:product_id>", methods=["GET", "POST"])
 @login_required
@@ -355,7 +415,12 @@ def edit_product(product_id):
 
     cursor.execute(
         """
-        SELECT id, name, quantity, buying_price, selling_price
+        SELECT
+            id,
+            name,
+            quantity,
+            buying_price,
+            selling_price
         FROM products
         WHERE id = %s
         AND shop_id = %s
@@ -380,11 +445,11 @@ def edit_product(product_id):
     )
 
 
-# =========================================================
+# =========================================
 # DELETE PRODUCT
-# =========================================================
+# =========================================
 
-@app.route("/delete-product/<int:product_id>")
+@app.route("/delete-product/<int:product_id>", methods=["POST"])
 @login_required
 def delete_product(product_id):
 
@@ -413,9 +478,9 @@ def delete_product(product_id):
     return redirect(url_for("products"))
 
 
-# =========================================================
+# =========================================
 # CUSTOMERS
-# =========================================================
+# =========================================
 
 @app.route("/customers")
 @login_required
@@ -428,7 +493,12 @@ def customers():
 
     cursor.execute(
         """
-        SELECT id, name, phone, email
+        SELECT
+            id,
+            name,
+            phone,
+            email,
+            created_at
         FROM customers
         WHERE shop_id = %s
         ORDER BY id DESC
@@ -447,9 +517,9 @@ def customers():
     )
 
 
-# =========================================================
+# =========================================
 # ADD CUSTOMER
-# =========================================================
+# =========================================
 
 @app.route("/add-customer", methods=["GET", "POST"])
 @login_required
@@ -495,9 +565,9 @@ def add_customer():
     return render_template("add_customer.html")
 
 
-# =========================================================
+# =========================================
 # EDIT CUSTOMER
-# =========================================================
+# =========================================
 
 @app.route("/edit-customer/<int:customer_id>", methods=["GET", "POST"])
 @login_required
@@ -542,7 +612,11 @@ def edit_customer(customer_id):
 
     cursor.execute(
         """
-        SELECT id, name, phone, email
+        SELECT
+            id,
+            name,
+            phone,
+            email
         FROM customers
         WHERE id = %s
         AND shop_id = %s
@@ -567,11 +641,11 @@ def edit_customer(customer_id):
     )
 
 
-# =========================================================
+# =========================================
 # DELETE CUSTOMER
-# =========================================================
+# =========================================
 
-@app.route("/delete-customer/<int:customer_id>")
+@app.route("/delete-customer/<int:customer_id>", methods=["POST"])
 @login_required
 def delete_customer(customer_id):
 
@@ -600,9 +674,9 @@ def delete_customer(customer_id):
     return redirect(url_for("customers"))
 
 
-# =========================================================
-# SALE
-# =========================================================
+# =========================================
+# MAKE SALE
+# =========================================
 
 @app.route("/sale", methods=["GET", "POST"])
 @login_required
@@ -615,7 +689,7 @@ def sale():
 
     if request.method == "POST":
 
-        product_id = request.form["product_id"]
+        product_id = int(request.form["product_id"])
         quantity = int(request.form["quantity"])
 
         customer_id = request.form.get("customer_id")
@@ -625,6 +699,7 @@ def sale():
         else:
             customer_id = int(customer_id)
 
+        # Get product
         cursor.execute(
             """
             SELECT
@@ -652,10 +727,13 @@ def sale():
 
             return "Product not found."
 
-        current_quantity = product[2]
+        product_id = product[0]
+        product_name = product[1]
+        available_quantity = product[2]
         buying_price = product[3]
         selling_price = product[4]
 
+        # Check stock
         if quantity <= 0:
 
             cursor.close()
@@ -663,7 +741,7 @@ def sale():
 
             return "Quantity must be greater than zero."
 
-        if quantity > current_quantity:
+        if quantity > available_quantity:
 
             cursor.close()
             connection.close()
@@ -672,24 +750,7 @@ def sale():
 
         total = selling_price * quantity
 
-        # Reduce product stock
-
-        cursor.execute(
-            """
-            UPDATE products
-            SET quantity = quantity - %s
-            WHERE id = %s
-            AND shop_id = %s
-            """,
-            (
-                quantity,
-                product_id,
-                shop_id
-            )
-        )
-
-        # Save sale
-
+        # Create sale
         cursor.execute(
             """
             INSERT INTO sales
@@ -702,7 +763,8 @@ def sale():
                 buying_price,
                 shop_id
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES
+            (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
             (
@@ -718,6 +780,21 @@ def sale():
 
         sale_id = cursor.fetchone()[0]
 
+        # Reduce stock
+        cursor.execute(
+            """
+            UPDATE products
+            SET quantity = quantity - %s
+            WHERE id = %s
+            AND shop_id = %s
+            """,
+            (
+                quantity,
+                product_id,
+                shop_id
+            )
+        )
+
         connection.commit()
 
         cursor.close()
@@ -730,11 +807,14 @@ def sale():
             )
         )
 
-    # Products belonging to current shop
-
+    # Products
     cursor.execute(
         """
-        SELECT id, name, quantity, selling_price
+        SELECT
+            id,
+            name,
+            quantity,
+            selling_price
         FROM products
         WHERE shop_id = %s
         AND quantity > 0
@@ -745,11 +825,13 @@ def sale():
 
     products = cursor.fetchall()
 
-    # Customers belonging to current shop
-
+    # Customers
     cursor.execute(
         """
-        SELECT id, name
+        SELECT
+            id,
+            name,
+            phone
         FROM customers
         WHERE shop_id = %s
         ORDER BY name
@@ -769,9 +851,9 @@ def sale():
     )
 
 
-# =========================================================
+# =========================================
 # SALES
-# =========================================================
+# =========================================
 
 @app.route("/sales")
 @login_required
@@ -787,18 +869,18 @@ def sales():
         SELECT
             sales.id,
             products.name,
+            customers.name,
             sales.quantity,
             sales.selling_price,
             sales.total,
-            sales.sale_date,
-            customers.name
+            sales.sale_date
         FROM sales
 
         JOIN products
-            ON sales.product_id = products.id
+        ON sales.product_id = products.id
 
         LEFT JOIN customers
-            ON sales.customer_id = customers.id
+        ON sales.customer_id = customers.id
 
         WHERE sales.shop_id = %s
 
@@ -818,9 +900,9 @@ def sales():
     )
 
 
-# =========================================================
+# =========================================
 # RECEIPT
-# =========================================================
+# =========================================
 
 @app.route("/receipt/<int:sale_id>")
 @login_required
@@ -836,19 +918,19 @@ def receipt(sale_id):
         SELECT
             sales.id,
             products.name,
+            customers.name,
+            customers.phone,
             sales.quantity,
             sales.selling_price,
             sales.total,
-            sales.sale_date,
-            customers.name,
-            customers.phone
+            sales.sale_date
         FROM sales
 
         JOIN products
-            ON sales.product_id = products.id
+        ON sales.product_id = products.id
 
         LEFT JOIN customers
-            ON sales.customer_id = customers.id
+        ON sales.customer_id = customers.id
 
         WHERE sales.id = %s
         AND sales.shop_id = %s
@@ -873,11 +955,11 @@ def receipt(sale_id):
     )
 
 
-# =========================================================
+# =========================================
 # CUSTOMER PURCHASES
-# =========================================================
+# =========================================
 
-@app.route("/customer-purchases/<int:customer_id>")
+@app.route("/customer/<int:customer_id>/purchases")
 @login_required
 def customer_purchases(customer_id):
 
@@ -885,28 +967,6 @@ def customer_purchases(customer_id):
 
     connection = get_connection()
     cursor = connection.cursor()
-
-    cursor.execute(
-        """
-        SELECT id, name, phone, email
-        FROM customers
-        WHERE id = %s
-        AND shop_id = %s
-        """,
-        (
-            customer_id,
-            shop_id
-        )
-    )
-
-    customer = cursor.fetchone()
-
-    if not customer:
-
-        cursor.close()
-        connection.close()
-
-        return "Customer not found."
 
     cursor.execute(
         """
@@ -920,7 +980,7 @@ def customer_purchases(customer_id):
         FROM sales
 
         JOIN products
-            ON sales.product_id = products.id
+        ON sales.product_id = products.id
 
         WHERE sales.customer_id = %s
         AND sales.shop_id = %s
@@ -940,14 +1000,13 @@ def customer_purchases(customer_id):
 
     return render_template(
         "customer_purchases.html",
-        customer=customer,
         purchases=purchases
     )
 
 
-# =========================================================
+# =========================================
 # LOW STOCK
-# =========================================================
+# =========================================
 
 @app.route("/low-stock")
 @login_required
@@ -985,9 +1044,10 @@ def low_stock():
     )
 
 
-# =========================================================
-# CREATE SHOP - ADMIN ONLY
-# =========================================================
+# =========================================
+# CREATE SHOP
+# ADMIN ONLY
+# =========================================
 
 @app.route("/create-shop", methods=["GET", "POST"])
 @admin_required
@@ -1039,9 +1099,10 @@ def create_shop():
     )
 
 
-# =========================================================
-# CREATE INVITATION - ADMIN ONLY
-# =========================================================
+# =========================================
+# CREATE INVITATION
+# ADMIN ONLY
+# =========================================
 
 @app.route("/create-invite", methods=["GET", "POST"])
 @admin_required
@@ -1052,20 +1113,17 @@ def create_invite():
 
     if request.method == "POST":
 
-        shop_id = request.form["shop_id"]
+        shop_id = int(request.form["shop_id"])
 
-        # Create secure random token
-
+        # Generate secure random token
         token = secrets.token_urlsafe(32)
 
-        # Store only the hash of the token
-
+        # Hash token before saving
         token_hash = hashlib.sha256(
             token.encode()
         ).hexdigest()
 
         # Invitation expires after 24 hours
-
         expires_at = datetime.utcnow() + timedelta(hours=24)
 
         cursor.execute(
@@ -1074,9 +1132,11 @@ def create_invite():
             (
                 token_hash,
                 expires_at,
+                used,
                 shop_id
             )
-            VALUES (%s, %s, %s)
+            VALUES
+            (%s, %s, FALSE, %s)
             """,
             (
                 token_hash,
@@ -1096,27 +1156,16 @@ def create_invite():
             _external=True
         )
 
-        return f"""
-        <h2>Invitation Created Successfully</h2>
-
-        <p>Send this link to the customer:</p>
-
-        <p>
-            <a href="{invitation_link}">
-                {invitation_link}
-            </a>
-        </p>
-
-        <p>
-            This invitation expires in 24 hours.
-        </p>
-        """
-
-    # Get all shops
+        return render_template(
+            "create_invite.html",
+            invitation_link=invitation_link
+        )
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT
+            id,
+            name
         FROM shops
         ORDER BY name
         """
@@ -1133,11 +1182,14 @@ def create_invite():
     )
 
 
-# =========================================================
-# SETUP ACCOUNT USING INVITATION
-# =========================================================
+# =========================================
+# SETUP ACCOUNT FROM INVITATION
+# =========================================
 
-@app.route("/setup-account/<token>", methods=["GET", "POST"])
+@app.route(
+    "/setup-account/<token>",
+    methods=["GET", "POST"]
+)
 def setup_account(token):
 
     token_hash = hashlib.sha256(
@@ -1174,6 +1226,7 @@ def setup_account(token):
     expires_at = invite[2]
     used = invite[3]
 
+    # Check if already used
     if used:
 
         cursor.close()
@@ -1181,6 +1234,7 @@ def setup_account(token):
 
         return "This invitation has already been used."
 
+    # Check expiration
     if datetime.utcnow() > expires_at:
 
         cursor.close()
@@ -1193,57 +1247,72 @@ def setup_account(token):
         username = request.form["username"]
         password = request.form["password"]
 
-        password_hash = generate_password_hash(
-            password
-        )
-
-        try:
-
-            cursor.execute(
-                """
-                INSERT INTO users
-                (
-                    username,
-                    password_hash,
-                    shop_id,
-                    role
-                )
-                VALUES (%s, %s, %s, %s)
-                """,
-                (
-                    username,
-                    password_hash,
-                    shop_id,
-                    "shop_user"
-                )
-            )
-
-            cursor.execute(
-                """
-                UPDATE account_invites
-                SET used = TRUE
-                WHERE id = %s
-                """,
-                (invite_id,)
-            )
-
-            connection.commit()
-
-        except Exception as e:
-
-            connection.rollback()
+        if len(password) < 6:
 
             cursor.close()
             connection.close()
 
-            return f"Could not create account: {e}"
+            return "Password must be at least 6 characters."
+
+        # Check username
+        cursor.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE username = %s
+            """,
+            (username,)
+        )
+
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+
+            cursor.close()
+            connection.close()
+
+            return "Username already exists."
+
+        password_hash = generate_password_hash(
+            password
+        )
+
+        # Create shop user
+        cursor.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                shop_id,
+                role
+            )
+            VALUES
+            (%s, %s, %s, 'shop_user')
+            """,
+            (
+                username,
+                password_hash,
+                shop_id
+            )
+        )
+
+        # Mark invitation as used
+        cursor.execute(
+            """
+            UPDATE account_invites
+            SET used = TRUE
+            WHERE id = %s
+            """,
+            (invite_id,)
+        )
+
+        connection.commit()
 
         cursor.close()
         connection.close()
 
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     cursor.close()
     connection.close()
@@ -1253,9 +1322,9 @@ def setup_account(token):
     )
 
 
-# =========================================================
-# TEST DATABASE CONNECTION
-# =========================================================
+# =========================================
+# TEST DATABASE
+# =========================================
 
 @app.route("/test-db")
 def test_db():
@@ -1273,19 +1342,16 @@ def test_db():
         cursor.close()
         connection.close()
 
-        return (
-            f"Database connection successful! "
-            f"Result: {result}"
-        )
+        return f"Database connected successfully: {result}"
 
     except Exception as e:
 
         return f"Database connection failed: {e}"
 
 
-# =========================================================
-# RUN APPLICATION
-# =========================================================
+# =========================================
+# RUN APP
+# =========================================
 
 if __name__ == "__main__":
 
