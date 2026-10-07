@@ -4,99 +4,119 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Receipt - Shop POS</title>
+    <title>Receipt #{{ sale[0] }} - Shop POS</title>
 
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+
+    <style>
+      .receipt {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .receipt h2,
+      .receipt p.center {
+        text-align: center;
+      }
+      .receipt table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      .receipt td {
+        padding: 6px 0;
+        border-bottom: 1px dashed #ccc;
+      }
+      .receipt td:last-child {
+        text-align: right;
+      }
+      .receipt .total td {
+        font-weight: bold;
+        font-size: 1.1em;
+        border-bottom: none;
+      }
+      @media print {
+        nav,
+        .no-print {
+          display: none !important;
+        }
+        .receipt {
+          border: none;
+        }
+      }
+    </style>
   </head>
 
   <body>
+    <nav>
+      <h2>Shop POS</h2>
+
+      <div>
+        <a href="/dashboard"> Dashboard </a>
+        <a href="/products"> Products </a>
+        <a href="/sale"> Make Sale </a>
+        <a href="/sales"> Sales History </a>
+        <a href="/low-stock"> Low Stock </a>
+        <a href="/customers"> Customers </a>
+      </div>
+    </nav>
+
     <main>
       <div class="receipt">
-        <h1>SHOP POS</h1>
-
-        <p>Sales Receipt</p>
-
-        <hr />
-
-        <!-- Receipt Information -->
-
-        <p>
-          <strong>Receipt No:</strong>
-          {{ sale_id }}
-        </p>
-
-        <p>
-          <strong>Date:</strong>
-          {{ sale_date }}
-        </p>
-
-        <hr />
-
-        <!-- Customer Information -->
-
-        <h3>Customer Information</h3>
-
-        <p>
-          <strong>Name:</strong>
-          {{ customer_name }}
-        </p>
-
-        {% if customer_phone %}
-
-        <p>
-          <strong>Phone:</strong>
-          {{ customer_phone }}
-        </p>
-
-        {% endif %}
-
-        <hr />
-
-        <!-- Product Information -->
+        <h2>Sales Receipt</h2>
+        <p class="center">Receipt #{{ sale[0] }}</p>
+        <p class="center">{{ sale[7] }}</p>
 
         <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th>Total</th>
-            </tr>
-          </thead>
+          <tr>
+            <td>Customer</td>
+            <td>
+              {% if sale[2] %}{{ sale[2] }}{% else %}Walk-in customer{% endif %}
+            </td>
+          </tr>
 
-          <tbody>
-            <tr>
-              <td>{{ product_name }}</td>
+          {% if sale[3] %}
+          <tr>
+            <td>Phone</td>
+            <td>{{ sale[3] }}</td>
+          </tr>
+          {% endif %}
 
-              <td>{{ quantity }}</td>
-
-              <td>KSh {{ selling_price }}</td>
-
-              <td>KSh {{ total }}</td>
-            </tr>
-          </tbody>
+          <tr>
+            <td>Product</td>
+            <td>{{ sale[1] }}</td>
+          </tr>
+          <tr>
+            <td>Quantity</td>
+            <td>{{ sale[4] }}</td>
+          </tr>
+          <tr>
+            <td>Unit price</td>
+            <td>{{ sale[5] }}</td>
+          </tr>
+          <tr class="total">
+            <td>Total</td>
+            <td>{{ sale[6] }}</td>
+          </tr>
         </table>
 
-        <hr />
+        <p class="center">Thank you for your purchase!</p>
+      </div>
 
-        <!-- Total -->
+      <br />
 
-        <h2>Total: KSh {{ total }}</h2>
-
-        <p>Thank you for shopping with us!</p>
-
-        <!-- Buttons -->
-
-        <div class="receipt-buttons">
-          <button onclick="window.print()" class="button">Print Receipt</button>
-
-          <a href="/sale" class="button"> New Sale </a>
-
-          <a href="/dashboard" class="button"> Dashboard </a>
-        </div>
+      <div class="no-print" style="text-align: center">
+        <button type="button" class="sell-button" onclick="window.print()">
+          Print Receipt
+        </button>
+        <br /><br />
+        <a href="/sale"> ← Make another sale </a>
       </div>
     </main>
   </body>
