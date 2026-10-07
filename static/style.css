@@ -1393,3 +1393,83 @@ th {
     }
 
 }
+/* ===== Receipt ===== */
+
+.receipt {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.receipt h2,
+.receipt p.center {
+  text-align: center;
+}
+
+.receipt table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  table-layout: fixed;
+}
+
+.receipt td {
+  padding: 6px 0;
+  border-bottom: 1px dashed #ccc;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.receipt td:first-child {
+  width: 38%;
+}
+
+.receipt td:last-child {
+  text-align: right;
+}
+
+.receipt .total td {
+  font-weight: bold;
+  font-size: 1.1em;
+  border-bottom: none;
+}
+
+@page {
+  margin: 6mm;
+}
+
+@media print {
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  main {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .receipt {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
