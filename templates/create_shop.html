@@ -2,10 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Create New Shop</title>
+    <title>Create Shop - Shop POS</title>
 
     <link
       rel="stylesheet"
@@ -14,14 +13,54 @@
   </head>
 
   <body>
-    <div class="setup-container">
-      <h1>Create New Shop</h1>
+    <!-- Navigation -->
 
-      <p class="setup-description">Create a new shop in the Shop POS system.</p>
+    <nav>
+      <h2>Shop POS</h2>
 
-      <form method="POST">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group">
+      <div>
+        <a href="/dashboard"> Dashboard </a>
+        <a href="/products"> Products </a>
+        <a href="/sale"> Make Sale </a>
+        <a href="/sales"> Sales History </a>
+        <a href="/low-stock"> Low Stock </a>
+        <a href="/customers"> Customers </a>
+        <a href="/create-shop"> Create Shop </a>
+        <a href="/create-invite"> Create Invite </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <h1>Create Shop</h1>
+
+      <div class="form-container">
+        {% if success %}
+
+        <p>
+          <strong>Shop created: {{ shop_name }}</strong> (ID: {{ shop_id }})
+        </p>
+
+        <br />
+
+        <a href="/create-invite">
+          <button type="button" class="sell-button">
+            Next: Create Login Link
+          </button>
+        </a>
+
+        <br /><br />
+
+        <a href="/create-shop"> Create another shop </a>
+
+        {% else %}
+
+        <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <!-- Shop Name -->
+
           <label for="name"> Shop Name </label>
 
           <input
@@ -31,36 +70,40 @@
             placeholder="Enter shop name"
             required
           />
-        </div>
 
-        <div class="form-group">
+          <!-- Phone -->
+
           <label for="phone"> Phone Number </label>
 
           <input
             type="text"
             id="phone"
             name="phone"
-            placeholder="Enter shop phone number"
+            placeholder="Enter phone number"
           />
-        </div>
 
-        <div class="form-group">
-          <label for="email"> Email Address </label>
+          <!-- Email -->
+
+          <label for="email"> Email </label>
 
           <input
             type="email"
             id="email"
             name="email"
-            placeholder="Enter shop email"
+            placeholder="Enter email address"
           />
-        </div>
 
-        <button type="submit">Create Shop</button>
-      </form>
+          <!-- Submit -->
 
-      <p class="login-link">
-        <a href="{{ url_for('dashboard') }}"> Back to Dashboard </a>
-      </p>
-    </div>
+          <button type="submit" class="sell-button">Create Shop</button>
+        </form>
+
+        {% endif %}
+      </div>
+
+      <br />
+
+      <a href="/dashboard"> ← Back to Dashboard </a>
+    </main>
   </body>
 </html>

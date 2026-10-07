@@ -2,10 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Create Customer Invitation</title>
+    <title>Create Invite - Shop POS</title>
 
     <link
       rel="stylesheet"
@@ -14,31 +13,99 @@
   </head>
 
   <body>
-    <div class="setup-container">
-      <h1>Create Customer Invitation</h1>
+    <!-- Navigation -->
 
-      <p class="setup-description">
-        Select the shop that this customer will belong to.
-      </p>
+    <nav>
+      <h2>Shop POS</h2>
 
-      <form method="POST">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group">
-          <label for="shop_id"> Select Shop </label>
+      <div>
+        <a href="/dashboard"> Dashboard </a>
+        <a href="/products"> Products </a>
+        <a href="/sale"> Make Sale </a>
+        <a href="/sales"> Sales History </a>
+        <a href="/low-stock"> Low Stock </a>
+        <a href="/customers"> Customers </a>
+        <a href="/create-shop"> Create Shop </a>
+        <a href="/create-invite"> Create Invite </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+
+    <main>
+      <h1>Create Login Link</h1>
+
+      <div class="form-container">
+        {% if invitation_link %}
+
+        <p>
+          Send this link to the shop. It works once and expires in 24 hours.
+        </p>
+
+        <br />
+
+        <input
+          type="text"
+          id="invite-link"
+          value="{{ invitation_link }}"
+          readonly
+        />
+
+        <button
+          type="button"
+          class="sell-button"
+          onclick="
+            navigator.clipboard.writeText(
+              document.getElementById('invite-link').value,
+            );
+            this.textContent = 'Copied!';
+          "
+        >
+          Copy Link
+        </button>
+
+        <br /><br />
+
+        <a href="/create-invite"> Create another link </a>
+
+        {% elif shops %}
+
+        <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <!-- Shop -->
+
+          <label for="shop_id"> Choose Shop </label>
 
           <select id="shop_id" name="shop_id" required>
-            <option value="">-- Select a Shop --</option>
+            <option value="">-- Select a shop --</option>
 
             {% for shop in shops %}
-
-            <option value="{{ shop[0] }}">{{ shop[1] }}</option>
-
+            <option value="{{ shop[0] }}">
+              {{ shop[1] }} (ID {{ shop[0] }})
+            </option>
             {% endfor %}
           </select>
-        </div>
 
-        <button type="submit">Create Invitation</button>
-      </form>
-    </div>
+          <!-- Submit -->
+
+          <button type="submit" class="sell-button">Create Link</button>
+        </form>
+
+        {% else %}
+
+        <p>No shops yet.</p>
+
+        <br />
+
+        <a href="/create-shop"> Create a shop first </a>
+
+        {% endif %}
+      </div>
+
+      <br />
+
+      <a href="/dashboard"> ← Back to Dashboard </a>
+    </main>
   </body>
 </html>
