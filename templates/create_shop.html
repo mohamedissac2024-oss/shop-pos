@@ -20,6 +20,7 @@
       <p class="setup-description">Create a new shop in the Shop POS system.</p>
 
       <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
           <label for="name"> Shop Name </label>
 

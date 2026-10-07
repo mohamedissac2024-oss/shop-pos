@@ -123,6 +123,7 @@
                   action="/delete-customer/{{ customer[0] }}"
                   style="display: inline"
                 >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button
                     type="submit"
                     class="delete-button"

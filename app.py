@@ -3,7 +3,10 @@ import secrets
 import hashlib
 
 from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from functools import wraps
+
+from psycopg2 import errors as pg_errors
 
 from flask import (
     Flask,
@@ -14,18 +17,106 @@ from flask import (
     session
 )
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect, CSRFError
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from db import get_connection
 
 
 # =========================================
-# FLASK APP
+# FLASK APP + SECURITY SETTINGS
 # =========================================
+
+# Render sets the RENDER environment variable automatically
+IS_PRODUCTION = os.getenv("RENDER") is not None
 
 app = Flask(__name__)
 
-app.secret_key = os.getenv("SECRET_KEY")
+secret_key = os.getenv("SECRET_KEY")
+
+if not secret_key:
+    raise RuntimeError(
+        "SECRET_KEY is not set. Add a long random value "
+        "in your environment variables."
+    )
+
+app.secret_key = secret_key
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=IS_PRODUCTION,
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+    WTF_CSRF_TIME_LIMIT=None
+)
+
+# Render sits behind a proxy: use the real client IP and https
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1
+)
+
+# CSRF protection for every POST form
+csrf = CSRFProtect(app)
+
+# Rate limiting (only applied where we add @limiter.limit)
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    storage_uri="memory://"
+)
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+
+    return (
+        "Your form expired or is invalid. "
+        "Go back, refresh the page and try again.",
+        400
+    )
+
+
+# =========================================
+# HELPERS
+# =========================================
+
+def close_db(cursor, connection):
+
+    cursor.close()
+    connection.close()
+
+
+def parse_int(value, minimum=None):
+
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return None
+
+    if minimum is not None and number < minimum:
+        return None
+
+    return number
+
+
+def parse_money(value):
+
+    try:
+        amount = Decimal(str(value).strip())
+    except (InvalidOperation, ValueError):
+        return None
+
+    if not amount.is_finite() or amount < 0:
+        return None
+
+    return amount
 
 
 # =========================================
@@ -47,6 +138,7 @@ def login_required(f):
 
 # =========================================
 # ADMIN REQUIRED
+# (platform owner only)
 # =========================================
 
 def admin_required(f):
@@ -58,11 +150,91 @@ def admin_required(f):
             return redirect(url_for("login"))
 
         if session.get("role") != "admin":
-            return "Access denied. Admins only."
+            return "Access denied. Admins only.", 403
 
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+# =========================================
+# CHECK USER + SHOP STATUS ON EVERY REQUEST
+# =========================================
+
+PUBLIC_ENDPOINTS = {
+    "home",
+    "login",
+    "logout",
+    "setup_account",
+    "static"
+}
+
+
+@app.before_request
+def check_shop_status():
+
+    if request.endpoint is None:
+        return
+
+    if request.endpoint in PUBLIC_ENDPOINTS:
+        return
+
+    if "user_id" not in session:
+        return
+
+    # Platform admin is never locked out
+    if session.get("role") == "admin":
+        return
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            shops.status,
+            shops.trial_ends_at
+        FROM users
+        JOIN shops
+        ON shops.id = users.shop_id
+        WHERE users.id = %s
+        AND users.shop_id = %s
+        """,
+        (
+            session["user_id"],
+            session.get("shop_id")
+        )
+    )
+
+    row = cursor.fetchone()
+
+    close_db(cursor, connection)
+
+    # User or shop no longer exists
+    if not row:
+
+        session.clear()
+
+        return redirect(url_for("login"))
+
+    status = row[0]
+    trial_ends_at = row[1]
+
+    trial_expired = (
+        status == "trial"
+        and trial_ends_at is not None
+        and trial_ends_at < datetime.utcnow()
+    )
+
+    if status == "suspended" or trial_expired:
+
+        session.clear()
+
+        return (
+            "Your shop account is suspended or its trial has ended. "
+            "Please contact support.",
+            403
+        )
 
 
 # =========================================
@@ -83,12 +255,13 @@ def home():
 # =========================================
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute; 50 per hour", methods=["POST"])
 def login():
 
     if request.method == "POST":
 
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "")
 
         connection = get_connection()
         cursor = connection.cursor()
@@ -102,20 +275,24 @@ def login():
                 shop_id,
                 role
             FROM users
-            WHERE username = %s
+            WHERE lower(username) = %s
             """,
             (username,)
         )
 
         user = cursor.fetchone()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         if user and check_password_hash(
             user[2],
             password
         ):
+
+            # Start a fresh session (prevents session fixation)
+            session.clear()
+
+            session.permanent = True
 
             session["user_id"] = user[0]
             session["username"] = user[1]
@@ -124,7 +301,7 @@ def login():
 
             return redirect(url_for("dashboard"))
 
-        return "Invalid username or password."
+        return "Invalid username or password.", 401
 
     return render_template("login.html")
 
@@ -160,6 +337,7 @@ def dashboard():
         SELECT COUNT(*)
         FROM products
         WHERE shop_id = %s
+        AND is_active = TRUE
         """,
         (shop_id,)
     )
@@ -172,6 +350,7 @@ def dashboard():
         SELECT COALESCE(SUM(quantity), 0)
         FROM products
         WHERE shop_id = %s
+        AND is_active = TRUE
         """,
         (shop_id,)
     )
@@ -226,6 +405,7 @@ def dashboard():
         SELECT COUNT(*)
         FROM products
         WHERE shop_id = %s
+        AND is_active = TRUE
         AND quantity <= 5
         """,
         (shop_id,)
@@ -233,8 +413,7 @@ def dashboard():
 
     low_stock_count = cursor.fetchone()[0]
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "dashboard.html",
@@ -274,6 +453,7 @@ def products():
                 selling_price
             FROM products
             WHERE shop_id = %s
+            AND is_active = TRUE
             AND (
                 name ILIKE %s
             )
@@ -297,6 +477,7 @@ def products():
                 selling_price
             FROM products
             WHERE shop_id = %s
+            AND is_active = TRUE
             ORDER BY id DESC
             """,
             (shop_id,)
@@ -304,8 +485,7 @@ def products():
 
     products = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "products.html",
@@ -324,10 +504,19 @@ def add_product():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        quantity = request.form["quantity"]
-        buying_price = request.form["buying_price"]
-        selling_price = request.form["selling_price"]
+        name = request.form.get("name", "").strip()
+        quantity = parse_int(request.form.get("quantity"), 0)
+        buying_price = parse_money(request.form.get("buying_price"))
+        selling_price = parse_money(request.form.get("selling_price"))
+
+        if not name:
+            return "Product name is required.", 400
+
+        if quantity is None:
+            return "Quantity must be a whole number (0 or more).", 400
+
+        if buying_price is None or selling_price is None:
+            return "Prices must be valid numbers (0 or more).", 400
 
         shop_id = session["shop_id"]
 
@@ -357,8 +546,7 @@ def add_product():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return redirect(url_for("products"))
 
@@ -380,10 +568,22 @@ def edit_product(product_id):
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        quantity = request.form["quantity"]
-        buying_price = request.form["buying_price"]
-        selling_price = request.form["selling_price"]
+        name = request.form.get("name", "").strip()
+        quantity = parse_int(request.form.get("quantity"), 0)
+        buying_price = parse_money(request.form.get("buying_price"))
+        selling_price = parse_money(request.form.get("selling_price"))
+
+        if not name:
+            close_db(cursor, connection)
+            return "Product name is required.", 400
+
+        if quantity is None:
+            close_db(cursor, connection)
+            return "Quantity must be a whole number (0 or more).", 400
+
+        if buying_price is None or selling_price is None:
+            close_db(cursor, connection)
+            return "Prices must be valid numbers (0 or more).", 400
 
         cursor.execute(
             """
@@ -395,6 +595,7 @@ def edit_product(product_id):
                 selling_price = %s
             WHERE id = %s
             AND shop_id = %s
+            AND is_active = TRUE
             """,
             (
                 name,
@@ -408,8 +609,7 @@ def edit_product(product_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return redirect(url_for("products"))
 
@@ -424,6 +624,7 @@ def edit_product(product_id):
         FROM products
         WHERE id = %s
         AND shop_id = %s
+        AND is_active = TRUE
         """,
         (
             product_id,
@@ -433,11 +634,10 @@ def edit_product(product_id):
 
     product = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     if not product:
-        return "Product not found."
+        return "Product not found.", 404
 
     return render_template(
         "edit_product.html",
@@ -447,6 +647,7 @@ def edit_product(product_id):
 
 # =========================================
 # DELETE PRODUCT
+# (hides the product but keeps sales history)
 # =========================================
 
 @app.route("/delete-product/<int:product_id>", methods=["POST"])
@@ -460,7 +661,8 @@ def delete_product(product_id):
 
     cursor.execute(
         """
-        DELETE FROM products
+        UPDATE products
+        SET is_active = FALSE
         WHERE id = %s
         AND shop_id = %s
         """,
@@ -472,8 +674,7 @@ def delete_product(product_id):
 
     connection.commit()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return redirect(url_for("products"))
 
@@ -508,8 +709,7 @@ def customers():
 
     customers = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "customers.html",
@@ -527,9 +727,12 @@ def add_customer():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        phone = request.form["phone"]
-        email = request.form["email"]
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+
+        if not name:
+            return "Customer name is required.", 400
 
         shop_id = session["shop_id"]
 
@@ -557,8 +760,7 @@ def add_customer():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return redirect(url_for("customers"))
 
@@ -580,9 +782,13 @@ def edit_customer(customer_id):
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        phone = request.form["phone"]
-        email = request.form["email"]
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+
+        if not name:
+            close_db(cursor, connection)
+            return "Customer name is required.", 400
 
         cursor.execute(
             """
@@ -605,8 +811,7 @@ def edit_customer(customer_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return redirect(url_for("customers"))
 
@@ -629,11 +834,10 @@ def edit_customer(customer_id):
 
     customer = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     if not customer:
-        return "Customer not found."
+        return "Customer not found.", 404
 
     return render_template(
         "edit_customer.html",
@@ -654,22 +858,34 @@ def delete_customer(customer_id):
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        DELETE FROM customers
-        WHERE id = %s
-        AND shop_id = %s
-        """,
-        (
-            customer_id,
-            shop_id
+    try:
+
+        cursor.execute(
+            """
+            DELETE FROM customers
+            WHERE id = %s
+            AND shop_id = %s
+            """,
+            (
+                customer_id,
+                shop_id
+            )
         )
-    )
 
-    connection.commit()
+        connection.commit()
 
-    cursor.close()
-    connection.close()
+    except pg_errors.ForeignKeyViolation:
+
+        connection.rollback()
+
+        close_db(cursor, connection)
+
+        return (
+            "This customer has purchase records "
+            "and cannot be deleted."
+        ), 400
+
+    close_db(cursor, connection)
 
     return redirect(url_for("customers"))
 
@@ -689,17 +905,49 @@ def sale():
 
     if request.method == "POST":
 
-        product_id = int(request.form["product_id"])
-        quantity = int(request.form["quantity"])
+        product_id = parse_int(request.form.get("product_id"), 1)
+        quantity = parse_int(request.form.get("quantity"), 1)
 
-        customer_id = request.form.get("customer_id")
+        if product_id is None:
+            close_db(cursor, connection)
+            return "Please choose a product.", 400
 
-        if customer_id == "":
-            customer_id = None
-        else:
-            customer_id = int(customer_id)
+        if quantity is None:
+            close_db(cursor, connection)
+            return "Quantity must be a whole number greater than zero.", 400
 
-        # Get product
+        # Optional customer
+        customer_id = None
+
+        raw_customer_id = request.form.get("customer_id", "").strip()
+
+        if raw_customer_id:
+
+            customer_id = parse_int(raw_customer_id, 1)
+
+            if customer_id is None:
+                close_db(cursor, connection)
+                return "Invalid customer.", 400
+
+            # The customer must belong to THIS shop
+            cursor.execute(
+                """
+                SELECT id
+                FROM customers
+                WHERE id = %s
+                AND shop_id = %s
+                """,
+                (
+                    customer_id,
+                    shop_id
+                )
+            )
+
+            if not cursor.fetchone():
+                close_db(cursor, connection)
+                return "Customer not found.", 404
+
+        # Get product (must belong to this shop and be active)
         cursor.execute(
             """
             SELECT
@@ -711,6 +959,7 @@ def sale():
             FROM products
             WHERE id = %s
             AND shop_id = %s
+            AND is_active = TRUE
             """,
             (
                 product_id,
@@ -721,32 +970,39 @@ def sale():
         product = cursor.fetchone()
 
         if not product:
+            close_db(cursor, connection)
+            return "Product not found.", 404
 
-            cursor.close()
-            connection.close()
-
-            return "Product not found."
-
-        product_id = product[0]
-        product_name = product[1]
-        available_quantity = product[2]
         buying_price = product[3]
         selling_price = product[4]
 
-        # Check stock
-        if quantity <= 0:
+        # Reduce stock safely.
+        # The WHERE quantity >= %s check makes it impossible
+        # for two sales at the same time to oversell.
+        cursor.execute(
+            """
+            UPDATE products
+            SET quantity = quantity - %s
+            WHERE id = %s
+            AND shop_id = %s
+            AND is_active = TRUE
+            AND quantity >= %s
+            """,
+            (
+                quantity,
+                product_id,
+                shop_id,
+                quantity
+            )
+        )
 
-            cursor.close()
-            connection.close()
+        if cursor.rowcount != 1:
 
-            return "Quantity must be greater than zero."
+            connection.rollback()
 
-        if quantity > available_quantity:
+            close_db(cursor, connection)
 
-            cursor.close()
-            connection.close()
-
-            return "Not enough stock."
+            return "Not enough stock.", 400
 
         total = selling_price * quantity
 
@@ -780,25 +1036,10 @@ def sale():
 
         sale_id = cursor.fetchone()[0]
 
-        # Reduce stock
-        cursor.execute(
-            """
-            UPDATE products
-            SET quantity = quantity - %s
-            WHERE id = %s
-            AND shop_id = %s
-            """,
-            (
-                quantity,
-                product_id,
-                shop_id
-            )
-        )
-
+        # Stock update and sale are saved together
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return redirect(
             url_for(
@@ -817,6 +1058,7 @@ def sale():
             selling_price
         FROM products
         WHERE shop_id = %s
+        AND is_active = TRUE
         AND quantity > 0
         ORDER BY name
         """,
@@ -841,8 +1083,7 @@ def sale():
 
     customers = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "sale.html",
@@ -878,9 +1119,11 @@ def sales():
 
         JOIN products
         ON sales.product_id = products.id
+        AND products.shop_id = sales.shop_id
 
         LEFT JOIN customers
         ON sales.customer_id = customers.id
+        AND customers.shop_id = sales.shop_id
 
         WHERE sales.shop_id = %s
 
@@ -891,8 +1134,7 @@ def sales():
 
     sales = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "sales.html",
@@ -928,9 +1170,11 @@ def receipt(sale_id):
 
         JOIN products
         ON sales.product_id = products.id
+        AND products.shop_id = sales.shop_id
 
         LEFT JOIN customers
         ON sales.customer_id = customers.id
+        AND customers.shop_id = sales.shop_id
 
         WHERE sales.id = %s
         AND sales.shop_id = %s
@@ -943,11 +1187,10 @@ def receipt(sale_id):
 
     sale = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     if not sale:
-        return "Sale not found."
+        return "Sale not found.", 404
 
     return render_template(
         "receipt.html",
@@ -981,6 +1224,7 @@ def customer_purchases(customer_id):
 
         JOIN products
         ON sales.product_id = products.id
+        AND products.shop_id = sales.shop_id
 
         WHERE sales.customer_id = %s
         AND sales.shop_id = %s
@@ -995,8 +1239,7 @@ def customer_purchases(customer_id):
 
     purchases = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "customer_purchases.html",
@@ -1027,6 +1270,7 @@ def low_stock():
             selling_price
         FROM products
         WHERE shop_id = %s
+        AND is_active = TRUE
         AND quantity <= 5
         ORDER BY quantity ASC
         """,
@@ -1035,8 +1279,7 @@ def low_stock():
 
     products = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "low_stock.html",
@@ -1055,9 +1298,12 @@ def create_shop():
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        phone = request.form["phone"]
-        email = request.form["email"]
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+
+        if not name:
+            return "Shop name is required.", 400
 
         connection = get_connection()
         cursor = connection.cursor()
@@ -1084,8 +1330,7 @@ def create_shop():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         return render_template(
             "create_shop.html",
@@ -1113,7 +1358,25 @@ def create_invite():
 
     if request.method == "POST":
 
-        shop_id = int(request.form["shop_id"])
+        shop_id = parse_int(request.form.get("shop_id"), 1)
+
+        if shop_id is None:
+            close_db(cursor, connection)
+            return "Please choose a shop.", 400
+
+        # Make sure the shop exists
+        cursor.execute(
+            """
+            SELECT id
+            FROM shops
+            WHERE id = %s
+            """,
+            (shop_id,)
+        )
+
+        if not cursor.fetchone():
+            close_db(cursor, connection)
+            return "Shop not found.", 404
 
         # Generate secure random token
         token = secrets.token_urlsafe(32)
@@ -1147,8 +1410,7 @@ def create_invite():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
         invitation_link = url_for(
             "setup_account",
@@ -1173,8 +1435,7 @@ def create_invite():
 
     shops = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "create_invite.html",
@@ -1190,6 +1451,7 @@ def create_invite():
     "/setup-account/<token>",
     methods=["GET", "POST"]
 )
+@limiter.limit("20 per hour", methods=["POST"])
 def setup_account(token):
 
     token_hash = hashlib.sha256(
@@ -1216,10 +1478,9 @@ def setup_account(token):
 
     if not invite:
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
-        return "Invalid invitation."
+        return "Invalid invitation.", 404
 
     invite_id = invite[0]
     shop_id = invite[1]
@@ -1229,93 +1490,98 @@ def setup_account(token):
     # Check if already used
     if used:
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
-        return "This invitation has already been used."
+        return "This invitation has already been used.", 400
 
     # Check expiration
     if datetime.utcnow() > expires_at:
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
-        return "This invitation has expired."
+        return "This invitation has expired.", 400
 
     if request.method == "POST":
 
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "")
 
-        if len(password) < 6:
+        if len(username) < 3:
 
-            cursor.close()
-            connection.close()
+            close_db(cursor, connection)
 
-            return "Password must be at least 6 characters."
+            return "Username must be at least 3 characters.", 400
 
-        # Check username
-        cursor.execute(
-            """
-            SELECT id
-            FROM users
-            WHERE username = %s
-            """,
-            (username,)
-        )
+        if len(password) < 8:
 
-        existing_user = cursor.fetchone()
+            close_db(cursor, connection)
 
-        if existing_user:
+            return "Password must be at least 8 characters.", 400
 
-            cursor.close()
-            connection.close()
-
-            return "Username already exists."
-
-        password_hash = generate_password_hash(
-            password
-        )
-
-        # Create shop user
-        cursor.execute(
-            """
-            INSERT INTO users
-            (
-                username,
-                password_hash,
-                shop_id,
-                role
-            )
-            VALUES
-            (%s, %s, %s, 'shop_user')
-            """,
-            (
-                username,
-                password_hash,
-                shop_id
-            )
-        )
-
-        # Mark invitation as used
+        # Claim the invitation first.
+        # If two people open the link at the same time,
+        # only one of them can succeed.
         cursor.execute(
             """
             UPDATE account_invites
             SET used = TRUE
             WHERE id = %s
+            AND used = FALSE
             """,
             (invite_id,)
         )
 
-        connection.commit()
+        if cursor.rowcount != 1:
 
-        cursor.close()
-        connection.close()
+            connection.rollback()
+
+            close_db(cursor, connection)
+
+            return "This invitation has already been used.", 400
+
+        password_hash = generate_password_hash(
+            password
+        )
+
+        try:
+
+            # Create shop user
+            cursor.execute(
+                """
+                INSERT INTO users
+                (
+                    username,
+                    password_hash,
+                    shop_id,
+                    role
+                )
+                VALUES
+                (%s, %s, %s, 'shop_user')
+                """,
+                (
+                    username,
+                    password_hash,
+                    shop_id
+                )
+            )
+
+            connection.commit()
+
+        except pg_errors.UniqueViolation:
+
+            # Rolls back the invitation claim too,
+            # so the link still works with another username
+            connection.rollback()
+
+            close_db(cursor, connection)
+
+            return "Username already exists.", 400
+
+        close_db(cursor, connection)
 
         return redirect(url_for("login"))
 
-    cursor.close()
-    connection.close()
+    close_db(cursor, connection)
 
     return render_template(
         "setup_account.html"
@@ -1324,9 +1590,11 @@ def setup_account(token):
 
 # =========================================
 # TEST DATABASE
+# ADMIN ONLY
 # =========================================
 
 @app.route("/test-db")
+@admin_required
 def test_db():
 
     try:
@@ -1337,16 +1605,15 @@ def test_db():
 
         cursor.execute("SELECT 1")
 
-        result = cursor.fetchone()
+        cursor.fetchone()
 
-        cursor.close()
-        connection.close()
+        close_db(cursor, connection)
 
-        return f"Database connected successfully: {result}"
+        return "Database connected successfully."
 
-    except Exception as e:
+    except Exception:
 
-        return f"Database connection failed: {e}"
+        return "Database connection failed.", 500
 
 
 # =========================================
@@ -1356,5 +1623,5 @@ def test_db():
 if __name__ == "__main__":
 
     app.run(
-        debug=True
+        debug=not IS_PRODUCTION
     )
